@@ -3,6 +3,8 @@ import pandas as pd
 from io import BytesIO
 from datetime import date
 from fpdf import FPDF
+from PIL import Image
+import os
 
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
@@ -30,7 +32,7 @@ def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":")[0])
+    start_hour = int(starttid.split(":"[0]))
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
@@ -58,8 +60,8 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
         "Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe",
         "Jobfunktion", "Helligdag", "Takst", "Samlet"]]
 
-    output_xlsx = BytesIO()
     uge_nr = invoice_df['Dato'].dt.isocalendar().week.min()
+    output_xlsx = BytesIO()
     filename_xlsx = f"FAKTURA ({fakturanummer}) FOR UGE {uge_nr} til AJOUR CARE FRA AKUTVIKAR.xlsx"
     invoice_df.to_excel(output_xlsx, index=False, sheet_name="Faktura")
     output_xlsx.seek(0)
@@ -68,30 +70,38 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf = FPDF()
     pdf.add_page()
 
-    # MR Rekruttering info
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "MR Rekruttering", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 6, "Valbygårdsvej 1, 4. th, 2500 Valby", ln=True)
-    pdf.cell(0, 6, "CVR.nr. 45090965", ln=True)
-    pdf.cell(0, 6, "Tlf: 71747290   Web: www.akutvikar.com", ln=True)
-    pdf.ln(5)
+    # Logo
+    logo_path = "logo.png"
+    if os.path.exists(logo_path):
+        pdf.image(logo_path, x=10, y=8, w=30)
 
-    # Kunde: Ajour Care
-    pdf.set_font("Arial", "B", 11)
-    pdf.cell(0, 6, "Til: Ajour Care ApS", ln=True)
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 6, "CVR: 34478953", ln=True)
-    pdf.cell(0, 6, "Kontaktperson: Charlotte Bigum Christensen", ln=True)
-    pdf.cell(0, 6, "Email: cbc@ajourcare.dk", ln=True)
-    pdf.ln(5)
+    # Invoice Title
+    pdf.set_xy(150, 10)
+    pdf.set_font("Arial", "B", 20)
+    pdf.cell(50, 10, f"INVOICE {fakturanummer}", ln=False)
 
+    pdf.ln(25)
+
+    # MR Rekruttering info venstre
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 8, f"Faktura nr. {fakturanummer}", ln=True)
+    pdf.cell(95, 6, "Fra: MR Rekruttering", ln=0)
+    pdf.cell(95, 6, "Til: Ajour Care ApS", ln=1)
+
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 6, "Valbygårdsvej 1, 4. th, 2500 Valby", ln=0)
+    pdf.cell(95, 6, "CVR: 34478953", ln=1)
+    pdf.cell(95, 6, "CVR.nr. 45090965", ln=0)
+    pdf.cell(95, 6, "Kontakt: Charlotte Bigum Christensen", ln=1)
+    pdf.cell(95, 6, "Tlf: 71747290", ln=0)
+    pdf.cell(95, 6, "Email: cbc@ajourcare.dk", ln=1)
+    pdf.cell(95, 6, "Web: www.akutvikar.com", ln=0)
+    pdf.ln(10)
+
     pdf.set_font("Arial", "", 10)
     pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
     pdf.ln(4)
 
+    # Tabel
     col_widths = [22, 35, 28, 12, 28, 25, 20, 14, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
