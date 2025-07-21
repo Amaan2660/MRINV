@@ -32,7 +32,7 @@ def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":"[0]))
+    start_hour = int(starttid.split(":")[0])
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
@@ -70,19 +70,15 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf = FPDF()
     pdf.add_page()
 
-    # Logo
     logo_path = "logo.png"
     if os.path.exists(logo_path):
         pdf.image(logo_path, x=10, y=8, w=30)
 
-    # Invoice Title
     pdf.set_xy(150, 10)
     pdf.set_font("Arial", "B", 20)
     pdf.cell(50, 10, f"INVOICE {fakturanummer}", ln=False)
 
     pdf.ln(25)
-
-    # MR Rekruttering info venstre
     pdf.set_font("Arial", "B", 12)
     pdf.cell(95, 6, "Fra: MR Rekruttering", ln=0)
     pdf.cell(95, 6, "Til: Ajour Care ApS", ln=1)
@@ -101,7 +97,6 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
     pdf.ln(4)
 
-    # Tabel
     col_widths = [22, 35, 28, 12, 28, 25, 20, 14, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
@@ -121,7 +116,6 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
             pdf.cell(col_widths[i], 8, str(v), border=1)
         pdf.ln()
 
-    # Totaler nederst
     pdf.ln(2)
     moms = total * 0.25
     total_med_moms = total + moms
@@ -130,7 +124,6 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(0, 8, f"Moms (25%): {moms:.2f} kr", ln=True)
     pdf.cell(0, 8, f"Total inkl. moms: {total_med_moms:.2f} kr", ln=True)
 
-    # Bankoplysninger
     pdf.ln(5)
     pdf.set_font("Arial", "", 9)
     pdf.cell(0, 6, "Bank: Finseta | IBAN: GB79TCCL04140404627601 | BIC: TCCLGB3LXXX", ln=True)
