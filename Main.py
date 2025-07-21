@@ -59,7 +59,8 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
         "Jobfunktion", "Helligdag", "Takst", "Samlet"]]
 
     output_xlsx = BytesIO()
-    filename_xlsx = f"Faktura_{fakturanummer}_MR_Rekruttering.xlsx"
+    uge_nr = invoice_df['Dato'].dt.isocalendar().week.min()
+    filename_xlsx = f"FAKTURA ({fakturanummer}) FOR UGE {uge_nr} til AJOUR CARE FRA AKUTVIKAR.xlsx"
     invoice_df.to_excel(output_xlsx, index=False, sheet_name="Faktura")
     output_xlsx.seek(0)
 
@@ -125,9 +126,9 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(0, 6, "Bank: Finseta | IBAN: GB79TCCL04140404627601 | BIC: TCCLGB3LXXX", ln=True)
     pdf.cell(0, 6, "Betalingsbetingelser: Bankoverførsel. Fakturanr. bedes angivet ved betaling.", ln=True)
 
-    pdf.output(output_pdf)
-    output_pdf.seek(0)
-    filename_pdf = f"Faktura_{fakturanummer}_MR_Rekruttering.pdf"
+    pdf_output = pdf.output(dest='S').encode('latin-1')
+    output_pdf = BytesIO(pdf_output)
+    filename_pdf = f"FAKTURA ({fakturanummer}) FOR UGE {uge_nr} til AJOUR CARE FRA AKUTVIKAR.pdf"
 
     return output_xlsx, filename_xlsx, output_pdf, filename_pdf
 
