@@ -9,10 +9,10 @@ import os
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
 # ----- Tilføj baggrund og container -----
-page_bg = """
+page_bg =
 <style>
 body {
-    background-color: #cc0000;
+    background-color: #aa1e1e;
     color: white;
 }
 
@@ -35,7 +35,7 @@ img.logo {
     width: 60px;
 }
 </style>
-"""
+
 st.markdown(page_bg, unsafe_allow_html=True)
 
 # Logo
@@ -107,7 +107,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
 
     logo_path = "logo.png"
     if os.path.exists(logo_path):
-        pdf.image(logo_path, x=10, y=5, w=30)
+        pdf.image(logo_path, x=10, y=4, w=30)
 
     pdf.set_xy(150, 8)
     pdf.set_font("Arial", "B", 20)
@@ -133,7 +133,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.ln(4)
 
     col_widths = [20, 32, 25, 10, 24, 22, 16, 12, 20]
-    headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
+    headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
     for i, h in enumerate(headers):
         pdf.cell(col_widths[i], 8, h, border=1)
