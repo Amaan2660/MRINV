@@ -133,7 +133,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
     pdf.ln(6)
 
-    col_widths = [20, 32, 25, 12, 24, 22, 16, 12, 20]
+    col_widths = [20, 32, 25, 12, 24, 22, 18, 12, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
     pdf.set_x(10)
