@@ -65,7 +65,7 @@ def rens_data(df):
 
 def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
-    personale = row["Personalegruppe"].lower()
+    personale = row["Personale"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
     start_hour = int(starttid.split(":")[0])
     dagtid = start_hour < 15
@@ -108,13 +108,13 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
 
     logo_path = "logo.png"
     if os.path.exists(logo_path):
-        pdf.image(logo_path, x=10, y=2, w=30)  # Lidt højere op
+        pdf.image(logo_path, x=10, y=2, w=30)
 
     pdf.set_xy(150, 6)
     pdf.set_font("Arial", "B", 20)
     pdf.cell(50, 10, f"INVOICE {fakturanummer}", ln=False)
 
-    pdf.ln(26)  # Flyt tekst længere ned
+    pdf.ln(32)
     pdf.set_font("Arial", "B", 12)
     pdf.cell(95, 6, "Fra: MR Rekruttering", ln=0)
     pdf.cell(95, 6, "Til: Ajour Care ApS", ln=1)
@@ -136,6 +136,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     col_widths = [20, 32, 25, 10, 24, 22, 16, 12, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
+    pdf.set_x(10)
     for i, h in enumerate(headers):
         pdf.cell(col_widths[i], 8, h, border=1)
     pdf.ln()
@@ -148,6 +149,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
             row["Personale"], row["Jobfunktion"], row["Helligdag"], f"{row['Takst']}", f"{row['Samlet']:.2f}"
         ]
         total += row["Samlet"]
+        pdf.set_x(10)
         for i, v in enumerate(values):
             pdf.cell(col_widths[i], 8, str(v), border=1)
         pdf.ln()
