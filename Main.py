@@ -8,6 +8,36 @@ import os
 
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
+# ----- Tilføj baggrund og container -----
+page_bg = """
+<style>
+body {
+    background-color: #aa1e1e;
+    color: white;
+}
+
+[data-testid="stAppViewContainer"] > .main {
+    background-color: white;
+    color: black;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    margin-top: 2rem;
+}
+
+img.logo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 60px;
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+# Logo
+st.image("logo.png", width=80)
+
 # ----- Funktioner -----
 def rens_data(df):
     df = df[~df.astype(str).apply(lambda x: x.str.contains("DitVikar|ditvikar|Dit vikarbureau", case=False)).any(axis=1)]
@@ -33,7 +63,7 @@ def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":")[0])
+    start_hour = int(starttid.split(":"[0]))
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
@@ -69,14 +99,14 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     output_xlsx.seek(0)
 
     output_pdf = BytesIO()
-    pdf = FPDF()
+    pdf = FPDF(unit='mm', format='A4')
     pdf.add_page()
 
     logo_path = "logo.png"
     if os.path.exists(logo_path):
-        pdf.image(logo_path, x=10, y=8, w=30)
+        pdf.image(logo_path, x=10, y=4, w=30)
 
-    pdf.set_xy(150, 10)
+    pdf.set_xy(150, 8)
     pdf.set_font("Arial", "B", 20)
     pdf.cell(50, 10, f"INVOICE {fakturanummer}", ln=False)
 
@@ -99,7 +129,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
     pdf.ln(4)
 
-    col_widths = [22, 35, 28, 12, 28, 25, 20, 14, 20]
+    col_widths = [20, 32, 25, 10, 24, 22, 16, 12, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
     pdf.set_font("Arial", "B", 10)
     for i, h in enumerate(headers):
