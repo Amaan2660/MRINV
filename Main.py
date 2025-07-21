@@ -12,7 +12,7 @@ st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 page_bg = """
 <style>
 body {
-    background-color: #aa1e1e;
+    background-color: #cc0000;
     color: white;
 }
 
@@ -23,6 +23,9 @@ body {
     padding: 2rem;
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
     margin-top: 2rem;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 img.logo {
@@ -63,7 +66,7 @@ def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":"[0]))
+    start_hour = int(starttid.split(":")[0])
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
@@ -104,7 +107,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
 
     logo_path = "logo.png"
     if os.path.exists(logo_path):
-        pdf.image(logo_path, x=10, y=4, w=30)
+        pdf.image(logo_path, x=10, y=5, w=30)
 
     pdf.set_xy(150, 8)
     pdf.set_font("Arial", "B", 20)
