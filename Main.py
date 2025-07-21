@@ -16,7 +16,6 @@ def rens_data(df):
     df = df[df["Timer"].notna() & (df["Timer"] > 0)]
     df["Tid"] = df["Starttid"].astype(str).str[:5] + "-" + df["Sluttid"].astype(str).str[:5]
     df["Dato"] = pd.to_datetime(df["Dato"], format="%d.%m.%Y")
-    df = df.sort_values(by=["Jobfunktion", "Dato", "Starttid"])
 
     byer = ["allerød", "egedal", "frederiksund", "solrød", "herlev", "ringsted"]
     def find_by(jobfunktion):
@@ -26,13 +25,15 @@ def rens_data(df):
                 return "frederiksund" if by == "frederikssund" else by
         return "andet"
     df["Jobfunktion"] = df["Jobfunktion"].apply(find_by)
+
+    df = df.sort_values(by=["Jobfunktion", "Dato", "Starttid"])
     return df
 
 def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":")[0])
+    start_hour = int(starttid.split(":"[0]))
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
@@ -60,6 +61,7 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
         "Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe",
         "Jobfunktion", "Helligdag", "Takst", "Samlet"]]
 
+    invoice_df = invoice_df.sort_values(by=["Jobfunktion", "Dato", "Tidsperiode"])
     uge_nr = invoice_df['Dato'].dt.isocalendar().week.min()
     output_xlsx = BytesIO()
     filename_xlsx = f"FAKTURA ({fakturanummer}) FOR UGE {uge_nr} til AJOUR CARE FRA AKUTVIKAR.xlsx"
