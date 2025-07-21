@@ -9,7 +9,7 @@ import os
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
 # ----- Tilføj baggrund og container -----
-page_bg =
+page_bg = """
 <style>
 body {
     background-color: #aa1e1e;
@@ -35,6 +35,7 @@ img.logo {
     width: 60px;
 }
 </style>
+"""
 
 st.markdown(page_bg, unsafe_allow_html=True)
 
@@ -87,11 +88,11 @@ def beregn_takst(row):
 def generer_faktura(df, fakturanummer, helligdage_valgte):
     invoice_df = df.copy()
     invoice_df["Helligdag"] = invoice_df["Dato"].isin(helligdage_valgte).map({True: "Ja", False: "Nej"})
-    invoice_df = invoice_df.rename(columns={"Tid": "Tidsperiode"})
+    invoice_df = invoice_df.rename(columns={"Tid": "Tidsperiode", "Personalegruppe": "Personale"})
     invoice_df["Takst"] = invoice_df.apply(beregn_takst, axis=1)
     invoice_df["Samlet"] = invoice_df["Timer"] * invoice_df["Takst"]
     invoice_df = invoice_df[[
-        "Dato", "Medarbejder", "Tidsperiode", "Timer", "Personalegruppe",
+        "Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale",
         "Jobfunktion", "Helligdag", "Takst", "Samlet"]]
 
     invoice_df = invoice_df.sort_values(by=["Jobfunktion", "Dato", "Tidsperiode"])
@@ -107,13 +108,13 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
 
     logo_path = "logo.png"
     if os.path.exists(logo_path):
-        pdf.image(logo_path, x=10, y=4, w=30)
+        pdf.image(logo_path, x=10, y=2, w=30)  # Lidt højere op
 
-    pdf.set_xy(150, 8)
+    pdf.set_xy(150, 6)
     pdf.set_font("Arial", "B", 20)
     pdf.cell(50, 10, f"INVOICE {fakturanummer}", ln=False)
 
-    pdf.ln(25)
+    pdf.ln(26)  # Flyt tekst længere ned
     pdf.set_font("Arial", "B", 12)
     pdf.cell(95, 6, "Fra: MR Rekruttering", ln=0)
     pdf.cell(95, 6, "Til: Ajour Care ApS", ln=1)
@@ -126,11 +127,11 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     pdf.cell(95, 6, "Tlf: 71747290", ln=0)
     pdf.cell(95, 6, "Email: cbc@ajourcare.dk", ln=1)
     pdf.cell(95, 6, "Web: www.akutvikar.com", ln=0)
-    pdf.ln(10)
+    pdf.ln(12)
 
     pdf.set_font("Arial", "", 10)
     pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
-    pdf.ln(4)
+    pdf.ln(6)
 
     col_widths = [20, 32, 25, 10, 24, 22, 16, 12, 20]
     headers = ["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale", "Jobfunktion", "Helligdag", "Takst", "Samlet"]
@@ -144,14 +145,14 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     for _, row in invoice_df.iterrows():
         values = [
             row["Dato"].strftime("%d.%m.%Y"), row["Medarbejder"], row["Tidsperiode"], f"{row['Timer']:.1f}",
-            row["Personalegruppe"], row["Jobfunktion"], row["Helligdag"], f"{row['Takst']}", f"{row['Samlet']:.2f}"
+            row["Personale"], row["Jobfunktion"], row["Helligdag"], f"{row['Takst']}", f"{row['Samlet']:.2f}"
         ]
         total += row["Samlet"]
         for i, v in enumerate(values):
             pdf.cell(col_widths[i], 8, str(v), border=1)
         pdf.ln()
 
-    pdf.ln(2)
+    pdf.ln(4)
     moms = total * 0.25
     total_med_moms = total + moms
     pdf.set_font("Arial", "B", 10)
