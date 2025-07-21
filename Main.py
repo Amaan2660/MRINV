@@ -33,7 +33,7 @@ def beregn_takst(row):
     helligdag = row["Helligdag"] == "Ja"
     personale = row["Personalegruppe"].lower()
     starttid = row["Tidsperiode"].split("-")[0]
-    start_hour = int(starttid.split(":"[0]))
+    start_hour = int(starttid.split(":")[0])
     dagtid = start_hour < 15
     ugedag = row["Dato"].weekday()
 
