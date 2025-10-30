@@ -51,7 +51,7 @@ def rens_data(df):
     df["Tid"] = df["Starttid"].astype(str).str[:5] + "-" + df["Sluttid"].astype(str).str[:5]
     df["Dato"] = pd.to_datetime(df["Dato"], format="%d.%m.%Y")
 
-    byer = ["allerød", "egedal", "frederiksund", "solrød", "herlev", "ringsted"]
+    byer = ["allerød", "egedal", "frederiksund", "solrød", "herlev", "ringsted", "køge"]
     def find_by(jobfunktion):
         jf = str(jobfunktion).lower()
         for by in byer:
