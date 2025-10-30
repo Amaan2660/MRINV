@@ -90,10 +90,10 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     invoice_df["Helligdag"] = invoice_df["Dato"].isin(helligdage_valgte).map({True: "Ja", False: "Nej"})
     invoice_df = invoice_df.rename(columns={"Tid": "Tidsperiode", "Personalegruppe": "Personale"})
     invoice_df["Takst"] = invoice_df.apply(beregn_takst, axis=1)
-    # +10 kr/time for Kirsten Rute (case-insensitive, exact match)
-    invoice_df.loc[invoice_df["Medarbejder"].astype(str).str.strip().str.lower() == "kirsten rute","Takst"] += 10
     invoice_df["Samlet"] = invoice_df["Timer"] * invoice_df["Takst"]
-    invoice_df = invoice_df[["Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale","Jobfunktion", "Helligdag", "Takst", "Samlet"]]
+    invoice_df = invoice_df[[
+        "Dato", "Medarbejder", "Tidsperiode", "Timer", "Personale",
+        "Jobfunktion", "Helligdag", "Takst", "Samlet"]]
 
     invoice_df = invoice_df.sort_values(by=["Jobfunktion", "Dato", "Tidsperiode"])
     uge_nr = invoice_df['Dato'].dt.isocalendar().week.min()
