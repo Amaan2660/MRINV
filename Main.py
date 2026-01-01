@@ -93,16 +93,26 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     invoice_df["Helligdag"] = invoice_df["Dato"].isin(helligdage_valgte).map({True: "Ja", False: "Nej"})
     invoice_df = invoice_df.rename(columns={"Tid": "Tidsperiode", "Personalegruppe": "Personale"})
 
-    # ✅ Normaliser personale – KUN Assistent og Assistent 2
+    # ✅ Normaliser personale – accepter KUN Assistent og Assistent 2
     invoice_df["Personale"] = (
     invoice_df["Personale"]
     .astype(str)
-    .str.strip()
     .str.lower()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.strip()
     )
 
-    invoice_df.loc[invoice_df["Personale"] == "assistent 2", "Personale"] = "assistent"
+    # Assistent 2 → Assistent (robust)
+    invoice_df.loc[
+    invoice_df["Personale"].str.fullmatch(r".*\bassistent\s*2\b.*"),
+    "Personale"
+    ] = "assistent"
 
+    # Assistent (men IKKE 2)
+    invoice_df.loc[
+    invoice_df["Personale"].str.fullmatch(r".*\bassistent\b.*"),
+    "Personale"
+    ] = "assistent"
 
     # ✅ +10 kr/time hvis Jobfunktion indeholder "Kirsten" (alle placeringer)
     invoice_df.loc[
