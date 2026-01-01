@@ -93,15 +93,16 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     invoice_df["Helligdag"] = invoice_df["Dato"].isin(helligdage_valgte).map({True: "Ja", False: "Nej"})
     invoice_df = invoice_df.rename(columns={"Tid": "Tidsperiode", "Personalegruppe": "Personale"})
 
-    # ✅ Normaliser personale (Assistent 2 → Assistent)
+    # ✅ Normaliser personale – KUN Assistent og Assistent 2
     invoice_df["Personale"] = (
-        invoice_df["Personale"]
-        .astype(str)
-        .str.lower()
-        .replace({"assistent 2": "assistent"})
+    invoice_df["Personale"]
+    .astype(str)
+    .str.strip()
+    .str.lower()
     )
 
-    invoice_df["Takst"] = invoice_df.apply(beregn_takst, axis=1)
+    invoice_df.loc[invoice_df["Personale"] == "assistent 2", "Personale"] = "assistent"
+
 
     # ✅ +10 kr/time hvis Jobfunktion indeholder "Kirsten" (alle placeringer)
     invoice_df.loc[
