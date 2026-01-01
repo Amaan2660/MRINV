@@ -118,48 +118,67 @@ def generer_faktura(df, fakturanr, helligdage):
     xls.seek(0)
 
     # -------------------- PDF --------------------
-    pdf = FPDF()
-    pdf.add_page()
-    if os.path.exists("logo.png"):
-        pdf.image("logo.png",10,5,30)
+    # -------------------- PDF --------------------
+pdf = FPDF()
+pdf.add_page()
+pdf.set_auto_page_break(auto=True, margin=15)
 
-    pdf.set_xy(140,10)
-    pdf.set_font("Arial","B",18)
-    pdf.cell(50,10,f"INVOICE {fakturanr}")
+if os.path.exists("logo.png"):
+    pdf.image("logo.png", 10, 5, 30)
 
-    pdf.ln(30)
-    pdf.set_font("Arial","",10)
-    pdf.cell(0,6,f"Fakturadato: {date.today().strftime('%d.%m.%Y')}",ln=True)
+pdf.set_xy(140, 10)
+pdf.set_font("Arial", "B", 18)
+pdf.cell(50, 10, f"INVOICE {fakturanr}")
 
-    widths = [20,32,25,12,24,22,18,12,20]
-    pdf.set_font("Arial","B",9)
-    for h,w in zip(inv.columns,widths):
-        pdf.cell(w,8,h,1)
+pdf.ln(30)
+pdf.set_font("Arial", "", 10)
+pdf.cell(0, 6, f"Fakturadato: {date.today().strftime('%d.%m.%Y')}", ln=True)
+pdf.ln(4)
+
+# ✅ PASSENDE KOLONNEBREDDER (SUM = 180 mm)
+widths = [18, 30, 24, 10, 20, 22, 14, 12, 18]
+
+# ---------- HEADER ----------
+pdf.set_font("Arial", "B", 9)
+pdf.set_x(10)
+for h, w in zip(inv.columns, widths):
+    pdf.cell(w, 8, h, border=1)
+pdf.ln()
+
+# ---------- ROWS ----------
+pdf.set_font("Arial", "", 9)
+total = 0
+
+for _, r in inv.iterrows():
+    pdf.set_x(10)
+    values = [
+        r["Dato"].strftime("%d.%m.%Y"),
+        str(r["Medarbejder"]),
+        str(r["Tidsperiode"]),
+        f"{r['Timer']:.1f}",
+        str(r["Personale"]),
+        str(r["Jobfunktion"]),
+        str(r["Helligdag"]),
+        f"{int(r['Takst'])}",
+        f"{r['Samlet']:.2f}",
+    ]
+
+    for v, w in zip(values, widths):
+        pdf.cell(w, 8, v, border=1)
     pdf.ln()
 
-    pdf.set_font("Arial","",9)
-    total = 0
-    for _,r in inv.iterrows():
-        total += r["Samlet"]
-        vals = [
-            r["Dato"].strftime("%d.%m.%Y"),r["Medarbejder"],r["Tidsperiode"],
-            f"{r['Timer']:.1f}",r["Personale"],r["Jobfunktion"],
-            r["Helligdag"],f"{r['Takst']}",f"{r['Samlet']:.2f}"
-        ]
-        for v,w in zip(vals,widths):
-            pdf.cell(w,8,str(v),1)
-        pdf.ln()
+    total += r["Samlet"]
 
-    moms = total * 0.25
-    pdf.ln(5)
-    pdf.set_font("Arial","B",10)
-    pdf.cell(0,6,f"Subtotal: {total:.2f} kr",ln=True)
-    pdf.cell(0,6,f"Moms (25%): {moms:.2f} kr",ln=True)
-    pdf.cell(0,6,f"Total inkl. moms: {total+moms:.2f} kr",ln=True)
+# ---------- TOTALER ----------
+moms = total * 0.25
+pdf.ln(5)
+pdf.set_font("Arial", "B", 10)
+pdf.cell(0, 6, f"Subtotal: {total:.2f} kr", ln=True)
+pdf.cell(0, 6, f"Moms (25%): {moms:.2f} kr", ln=True)
+pdf.cell(0, 6, f"Total inkl. moms: {total + moms:.2f} kr", ln=True)
 
-    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+pdf_bytes = pdf.output(dest="S").encode("latin-1")
 
-    return xls, f"FAKTURA_{fakturanr}_UGE_{uge}.xlsx", BytesIO(pdf_bytes), f"FAKTURA_{fakturanr}_UGE_{uge}.pdf"
 
 # -------------------- UI --------------------
 st.title("MR Rekruttering – Fakturagenerator")
