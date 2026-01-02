@@ -139,10 +139,10 @@ def generer_faktura(df, fakturanummer, helligdage):
     if os.path.exists("logo.png"):
         pdf.image("logo.png", 10, 5, 30)
 
-    # ----- HEADER -----
+    # ----- HEADER (STARTS BELOW LOGO) -----
     pdf.set_font("Arial","B",12)
 
-    pdf.set_xy(10,20)
+    pdf.set_xy(10,40)
     pdf.cell(95,6,"Fra: MR Rekruttering",ln=1)
     pdf.set_font("Arial","",10)
     pdf.set_x(10); pdf.cell(95,6,"Valbygårdsvej 1, 4. th, 2500 Valby",ln=1)
@@ -151,7 +151,7 @@ def generer_faktura(df, fakturanummer, helligdage):
     pdf.set_x(10); pdf.cell(95,6,"Web: www.akutvikar.com",ln=1)
 
     pdf.set_font("Arial","B",12)
-    pdf.set_xy(105,20)
+    pdf.set_xy(105,40)
     pdf.cell(95,6,"Til: Ajour Care ApS",ln=1)
     pdf.set_font("Arial","",10)
     pdf.set_x(105); pdf.cell(95,6,"CVR: 34478953",ln=1)
