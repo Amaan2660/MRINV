@@ -7,24 +7,20 @@ import os
 
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
-# ----- Styling -----
-page_bg = """
+# ---------- Styling ----------
+st.markdown("""
 <style>
-body { background-color: #aa1e1e; color: white; }
+body { background-color:#aa1e1e; color:white; }
 [data-testid="stAppViewContainer"] > .main {
-    background-color: white;
-    color: black;
-    border-radius: 10px;
-    padding: 2rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    margin-top: 2rem;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
+    background:white;
+    color:black;
+    border-radius:10px;
+    padding:2rem;
+    max-width:900px;
+    margin:auto;
 }
 </style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 if os.path.exists("logo.png"):
     st.image("logo.png", width=80)
@@ -35,7 +31,7 @@ if os.path.exists("logo.png"):
 def rens_data(df):
     df = df[
         ~df.astype(str)
-        .apply(lambda x: x.str.contains("DitVikar|ditvikar|Dit vikarbureau", case=False, na=False))
+        .apply(lambda x: x.str.contains("DitVikar", case=False, na=False))
         .any(axis=1)
     ]
 
@@ -52,11 +48,11 @@ def rens_data(df):
 
     byer = ["allerød","egedal","frederiksund","solrød","herlev","ringsted","køge"]
 
-    def find_by(jobfunktion):
-        jf = str(jobfunktion).lower()
-        for by in byer:
-            if by in jf:
-                return by
+    def find_by(txt):
+        t = str(txt).lower()
+        for b in byer:
+            if b in t:
+                return b
         return "andet"
 
     df["Jobfunktion"] = df["Jobfunktion"].apply(find_by)
@@ -90,7 +86,7 @@ def beregn_takst(row):
 # --------------------------------------------------
 # INVOICE GENERATION
 # --------------------------------------------------
-def generer_faktura(df, fakturanummer, helligdage):
+def generer_faktura(df, fakturanr, helligdage):
     inv = df.copy()
 
     inv["Helligdag"] = inv["Dato"].isin(helligdage).map({True:"Ja", False:"Nej"})
@@ -125,12 +121,12 @@ def generer_faktura(df, fakturanummer, helligdage):
 
     uge = inv["Dato"].dt.isocalendar().week.min()
 
-    # ---------------- Excel ----------------
+    # ---------- Excel ----------
     excel = BytesIO()
     inv.to_excel(excel, index=False)
     excel.seek(0)
 
-    # ---------------- PDF ----------------
+    # ---------- PDF ----------
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=20)
@@ -139,9 +135,13 @@ def generer_faktura(df, fakturanummer, helligdage):
     if os.path.exists("logo.png"):
         pdf.image("logo.png", 10, 5, 30)
 
-    # ----- HEADER (STARTS BELOW LOGO) -----
-    pdf.set_font("Arial","B",12)
+    # FAKTURA NR (TOP RIGHT)
+    pdf.set_font("Arial","B",20)
+    pdf.set_xy(140,10)
+    pdf.cell(60,10,f"FAKTURA {fakturanr}", align="R")
 
+    # HEADER (UNDER LOGO)
+    pdf.set_font("Arial","B",12)
     pdf.set_xy(10,40)
     pdf.cell(95,6,"Fra: MR Rekruttering",ln=1)
     pdf.set_font("Arial","",10)
@@ -163,7 +163,7 @@ def generer_faktura(df, fakturanummer, helligdage):
     pdf.cell(0,6,f"Fakturadato: {date.today().strftime('%d.%m.%Y')}",ln=1)
     pdf.ln(6)
 
-    # ----- TABLE -----
+    # TABLE
     widths = [18,38,24,10,18,20,20,12,16]
 
     pdf.set_font("Arial","B",9)
@@ -199,7 +199,7 @@ def generer_faktura(df, fakturanummer, helligdage):
     pdf.cell(0,6,f"Moms (25%): {moms:.2f} kr",ln=1)
     pdf.cell(0,6,f"Total inkl. moms: {total+moms:.2f} kr",ln=1)
 
-    # ----- FOOTER -----
+    # FOOTER
     pdf.ln(6)
     pdf.set_font("Arial","",9)
     pdf.cell(0,6,"Bank: Finseta | IBAN: GB79TCCL04140404627601 | BIC: TCCLGB3LXXX",ln=1)
@@ -207,7 +207,7 @@ def generer_faktura(df, fakturanummer, helligdage):
 
     pdf_bytes = pdf.output(dest="S").encode("latin-1")
 
-    return excel, f"FAKTURA_{fakturanummer}_UGE_{uge}.xlsx", BytesIO(pdf_bytes), f"FAKTURA_{fakturanummer}_UGE_{uge}.pdf"
+    return excel, f"FAKTURA_{fakturanr}_UGE_{uge}.xlsx", BytesIO(pdf_bytes), f"FAKTURA_{fakturanr}_UGE_{uge}.pdf"
 
 # --------------------------------------------------
 # UI
