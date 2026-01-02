@@ -48,11 +48,20 @@ def rens_data(df):
 
     byer = ["allerød","egedal","frederiksund","solrød","herlev","ringsted","køge"]
 
+    # 🔴 OPDATERET LOGIK
     def find_by(txt):
         t = str(txt).lower()
+
+        # 1. Hvis en kendt by findes → brug den
         for b in byer:
             if b in t:
                 return b
+
+        # 2. Hvis "kirsten" og ingen by → køge
+        if "kirsten" in t:
+            return "køge"
+
+        # 3. Ellers
         return "andet"
 
     df["Jobfunktion"] = df["Jobfunktion"].apply(find_by)
@@ -106,7 +115,7 @@ def generer_faktura(df, fakturanr, helligdage):
     # Rates
     inv["Takst"] = [beregn_takst(r) for _, r in inv.iterrows()]
 
-    # Kirsten +10
+    # Kirsten +10 kr (stadig baseret på Jobfunktion_raw)
     inv.loc[
         inv["Jobfunktion_raw"].astype(str).str.contains("kirsten", case=False, na=False),
         "Takst"
@@ -207,7 +216,12 @@ def generer_faktura(df, fakturanr, helligdage):
 
     pdf_bytes = pdf.output(dest="S").encode("latin-1")
 
-    return excel, f"FAKTURA_{fakturanr}_UGE_{uge}.xlsx", BytesIO(pdf_bytes), f"FAKTURA_{fakturanr}_UGE_{uge}.pdf"
+    return (
+        excel,
+        f"FAKTURA_{fakturanr}_UGE_{uge}.xlsx",
+        BytesIO(pdf_bytes),
+        f"FAKTURA_{fakturanr}_UGE_{uge}.pdf"
+    )
 
 # --------------------------------------------------
 # UI
