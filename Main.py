@@ -121,13 +121,14 @@ def generer_faktura(df, fakturanummer, helligdage_valgte):
     # Takstberegning
     invoice_df["Takst"] = invoice_df.apply(beregn_takst, axis=1)
 
-    # +10 kr for Kirsten
+    # +10 kr for all shifts mentioning "Kirsten" anywhere
     invoice_df.loc[
         invoice_df["Jobfunktion_raw"]
         .astype(str)
-        .str.contains(r"\bkirsten\b", case=False, na=False),
+        .str.contains("kirsten", case=False, na=False),
         "Takst"
     ] += 10
+
 
     invoice_df["Samlet"] = invoice_df["Timer"] * invoice_df["Takst"]
 
