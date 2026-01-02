@@ -96,7 +96,10 @@ def generer_faktura(df, fakturanr, helligdage):
     inv.loc[inv["Personale"] == "assistent 2", "Personale"] = "assistent"
 
     # ---------- RATE ----------
-    inv["Takst"] = inv.apply(beregn_takst, axis=1)
+    invoice_df["Takst"] = [
+    beregn_takst(row)
+    for _, row in invoice_df.iterrows()
+    ]
 
     # ---------- KIRSTEN +10 ----------
     inv.loc[
