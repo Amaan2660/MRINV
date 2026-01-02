@@ -5,9 +5,9 @@ from datetime import date
 from fpdf import FPDF
 import os
 
-# --------------------------------------------------
+# ==================================================
 # PAGE SETUP
-# --------------------------------------------------
+# ==================================================
 st.set_page_config(page_title="MR Fakturagenerator", layout="centered")
 
 st.markdown("""
@@ -26,9 +26,9 @@ body { background-color:#aa1e1e; }
 if os.path.exists("logo.png"):
     st.image("logo.png", width=80)
 
-# --------------------------------------------------
+# ==================================================
 # DATA CLEANING
-# --------------------------------------------------
+# ==================================================
 def rens_data(df):
     df = df[
         ~df.astype(str)
@@ -49,13 +49,13 @@ def rens_data(df):
 
     return df.sort_values(["Dato","Starttid"])
 
-# --------------------------------------------------
-# RATE LOGIC (100% SAFE)
-# --------------------------------------------------
+# ==================================================
+# RATE LOGIC (SAFE)
+# ==================================================
 def beregn_takst(row):
     personale = str(row["Personale"]).strip().lower()
 
-    # Only Assistant / Assistant 2 allowed
+    # Only assistant / assistant 2 allowed
     if personale not in ("assistent", "assistent 2"):
         return 0
 
@@ -64,7 +64,6 @@ def beregn_takst(row):
     dag = start_hour < 15
     weekend = row["Dato"].weekday() >= 5
 
-    # ASSISTENT RATES
     if helligdag:
         return 230 if dag else 240
 
@@ -73,16 +72,16 @@ def beregn_takst(row):
 
     return 220 if dag else 225
 
-# --------------------------------------------------
+# ==================================================
 # INVOICE GENERATION
-# --------------------------------------------------
+# ==================================================
 def generer_faktura(df, fakturanr, helligdage):
     inv = df.copy()
 
     inv["Helligdag"] = inv["Dato"].isin(helligdage).map({True:"Ja", False:"Nej"})
     inv = inv.rename(columns={"Tid":"Tidsperiode","Personalegruppe":"Personale"})
 
-    # ---------- PERSONALE NORMALIZATION (BULLETPROOF) ----------
+    # -------- PERSONALE NORMALISATION --------
     inv["Personale"] = (
         inv["Personale"]
         .astype(str)
@@ -92,16 +91,16 @@ def generer_faktura(df, fakturanr, helligdage):
         .str.lower()
     )
 
-    # Map assistant 2 → assistant
+    # Map assistant 2 → assistant (rate-equivalent)
     inv.loc[inv["Personale"] == "assistent 2", "Personale"] = "assistent"
 
-    # ---------- RATE ----------
-    invoice_df["Takst"] = [
-    beregn_takst(row)
-    for _, row in invoice_df.iterrows()
+    # -------- RATE (NO APPLY) --------
+    inv["Takst"] = [
+        beregn_takst(row)
+        for _, row in inv.iterrows()
     ]
 
-    # ---------- KIRSTEN +10 ----------
+    # -------- KIRSTEN +10 --------
     inv.loc[
         inv["Jobfunktion_raw"]
         .astype(str)
@@ -118,16 +117,16 @@ def generer_faktura(df, fakturanr, helligdage):
 
     uge = inv["Dato"].dt.isocalendar().week.min()
 
-    # --------------------------------------------------
+    # ==================================================
     # EXCEL
-    # --------------------------------------------------
+    # ==================================================
     excel = BytesIO()
     inv.to_excel(excel, index=False)
     excel.seek(0)
 
-    # --------------------------------------------------
+    # ==================================================
     # PDF
-    # --------------------------------------------------
+    # ==================================================
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -157,7 +156,7 @@ def generer_faktura(df, fakturanr, helligdage):
 
     for _, r in inv.iterrows():
         pdf.set_x(10)
-        row = [
+        row_vals = [
             r["Dato"].strftime("%d.%m.%Y"),
             str(r["Medarbejder"]),
             r["Tidsperiode"],
@@ -168,7 +167,7 @@ def generer_faktura(df, fakturanr, helligdage):
             str(int(r["Takst"])),
             f"{r['Samlet']:.2f}"
         ]
-        for v,w in zip(row, widths):
+        for v,w in zip(row_vals, widths):
             pdf.cell(w,8,v,1)
         pdf.ln()
         total += r["Samlet"]
@@ -189,9 +188,9 @@ def generer_faktura(df, fakturanr, helligdage):
         f"FAKTURA_{fakturanr}_UGE_{uge}.pdf"
     )
 
-# --------------------------------------------------
+# ==================================================
 # UI
-# --------------------------------------------------
+# ==================================================
 st.title("MR Rekruttering – Fakturagenerator")
 
 file = st.file_uploader("Upload Excel file", type=["xlsx"])
@@ -209,4 +208,3 @@ if file and fakturanr:
         st.success("Invoice generated successfully")
         st.download_button("Download Excel", xls, file_name=xls_name)
         st.download_button("Download PDF", pdf, file_name=pdf_name)
-
